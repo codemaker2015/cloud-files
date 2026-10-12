@@ -1,0 +1,46 @@
+services:
+  floci:            # AWS emulator (S3)
+    image: floci/floci:latest
+    ports: ["4566:4566"]
+    environment:
+      FLOCI_STORAGE_MODE: persistent
+    volumes:
+      - floci-aws-data:/app/data
+  floci-az:         # Azure emulator (Blob Storage)
+    image: floci/floci-az:latest
+    ports: ["4577:4577"]
+    environment:
+      FLOCI_AZ_STORAGE_MODE: persistent
+    volumes:
+      - floci-az-data:/app/data
+  floci-gcp:        # GCP emulator (Cloud Storage)
+    image: floci/floci-gcp:latest
+    ports: ["4588:4588"]
+    environment:
+      FLOCI_GCP_STORAGE_MODE: persistent
+    volumes:
+      - floci-gcp-data:/app/data
+
+  backend:
+    build: ./backend
+    environment:
+      AWS_ENDPOINT: http://floci:4566
+      AZURE_ENDPOINT: http://floci-az:4577
+      GCP_ENDPOINT: http://floci-gcp:4588
+      PUBLIC_AWS_ENDPOINT: http://localhost:4566      # what your browser can reach
+      PUBLIC_AZURE_ENDPOINT: http://localhost:4577
+      PUBLIC_GCP_ENDPOINT: http://localhost:4588
+    depends_on:
+      floci:     { condition: service_healthy }
+      floci-az:  { condition: service_healthy }
+      floci-gcp: { condition: service_healthy }
+
+  frontend:
+    build: ./frontend
+    ports: ["3000:80"]
+    depends_on: [backend]
+
+volumes:
+  floci-aws-data:
+  floci-az-data:
+  floci-gcp-data:

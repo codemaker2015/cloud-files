@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+python-multipart
+boto3
+azure-storage-blob
+google-cloud-storage
